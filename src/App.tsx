@@ -90,12 +90,18 @@ function App() {
 
     try {
       const xdr = tx.toXDR()
-      const signedTransaction = await xBullSDK.signXDR(xdr, {
+      const permissions = await xBullSDK.connect({
+        canRequestPublicKey: true,
+        canRequestSign: true
+      });
+      console.log("permissions ok", permissions);
+      const signedXDR = await xBullSDK.signXDR(xdr, {
         publicKey,
         network: stellarSdk.Networks.TESTNET,
       });
-      console.log("signedtransaction", signedTransaction);
-      const txResult = await server.submitTransaction(signedTransaction);
+      console.log("signedtransaction", signedXDR);
+      const signedTx = new stellarSdk.Transaction(signedXDR, stellarSdk.Networks.TESTNET);
+      const txResult = await server.submitTransaction(signedTx);
       console.log("todo bien", txResult);
       loadBalance(publicKey)
     } catch (error) {
