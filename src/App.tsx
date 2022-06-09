@@ -19,14 +19,14 @@ function App() {
   const [connectWalletModalOpen, setConnectWalletModalOpen] = useState(false)
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [randomDestinationPublicKey, setRandomDestinationPublicKey] = useState("");
-  const [randomDestinationSecretKey, setRandomDestinationSecretKey] = useState("");
 
   function createRandomKeypair() {
     const pair = stellarSdk.Keypair.random();
     const publicKey = pair.publicKey();
     const secretKey = pair.secret();
+    console.log("new wallet public key", publicKey);
+    console.log("new wallet secret key", secretKey);
     setRandomDestinationPublicKey(publicKey);
-    setRandomDestinationSecretKey(secretKey);
   }
 
   function handleShowModal() {
@@ -109,6 +109,38 @@ function App() {
     }
   }
 
+  async function handleChangeTrust(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const destinationPublicKey = formData.get("destination-public-key") as string;
+    const destinationSecretkey = formData.get("destination-secret-key") as string;
+    const destinationAsset = formData.get("destination-asset") as string;
+    const destinationAssetIssuerPublicAddress = formData.get("destination-asset-issuer-public-address") as string;
+    const sourceAccount = await server.loadAccount(destinationPublicKey);
+
+    // Una transacción puede tener hasta 100 operaciones dentro. Cada operación paga un fee.
+    const tx = new stellarSdk.TransactionBuilder(sourceAccount, {
+        // con esto obtenemos los fees de la red. Si la red está congestionada y no enviamos suficientes fees, entonces nuestra transacción puede fallar.
+        // más en https://horizon-testnet.stellar.org/fee_stats
+        fee: (await server.fetchBaseFee()).toString(),
+        networkPassphrase: stellarSdk.Networks.TESTNET,
+    })
+      .addOperation(stellarSdk.Operation.changeTrust({
+        asset: new stellarSdk.Asset(destinationAsset, destinationAssetIssuerPublicAddress),
+      }))
+      .setTimeout(60 * 10) //10 minutos, luego la tx falla
+      .build();
+
+    try {
+      tx.sign(stellarSdk.Keypair.fromSecret(destinationSecretkey));
+      const txResult = await server.submitTransaction(tx);
+      console.log("cambiaste el trust", txResult);
+    } catch (error) {
+      console.error("no cambiaste el trust", error); 
+    }
+  }
+
   function connectWallet(event) {
     if (event.data.type === 'XBULL_INJECTED' && !!window.xBullSDK) {
       // xBullSDK should be available in the window (global) object
@@ -147,9 +179,10 @@ function App() {
         </label>
         <div className="mt-1">
           <input
-            type="public-key"
+            type="text"
             name="public-key"
             id="public-key"
+            required
             className="p-2 max-w-xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
             placeholder="G...."
           />
@@ -180,7 +213,7 @@ function App() {
         </label>
         <div className="mt-1">
           <input
-            type="destination-public-key"
+            type="text"
             name="destination-public-key"
             id="destination-public-key"
             className="p-2 max-w-xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
@@ -192,6 +225,64 @@ function App() {
           className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Donate
+        </button>
+      </form>
+
+      <form onSubmit={handleChangeTrust} className='my-6 p-3 rounded-lg bg-gray-100 max-w-xl'>
+        <h2 className='font-medium text-gray-800'>Change destination trustline to asset</h2>
+        <label htmlFor="destination-public-key" className="mt-3 block text-sm font-medium text-gray-700">
+          Destination Public Key
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="destination-public-key"
+            id="destination-public-key"
+            className="p-2 max-w-xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder="G...."
+          />
+        </div>
+        <label htmlFor="destination-secret-key" className="mt-3 block text-sm font-medium text-gray-700">
+          Destination Secret Key
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="destination-secret-key"
+            id="destination-secret-key"
+            className="p-2 max-w-xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder="G...."
+          />
+        </div>
+        <label htmlFor="destination-asset" className="mt-3 block text-sm font-medium text-gray-700">
+          Destination Asset to change trust
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="destination-asset"
+            id="destination-asset"
+            className="p-2 max-w-xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder="USDC"
+          />
+        </div>
+        <label htmlFor="destination-asset-issuer-public-address" className="mt-3 block text-sm font-medium text-gray-700">
+          Destination Asset Issuer Public Address to change trust
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            name="destination-asset-issuer-public-address"
+            id="destination-asset-issuer-public-address"
+            className="p-2 max-w-xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder="GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+          />
+        </div>
+        <button
+          type="submit"
+          className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Change Trust
         </button>
       </form>
 
