@@ -81,8 +81,8 @@ function App() {
     const asset = sourceAsset === "XLM" ? stellarSdk.Asset.native() : new stellarSdk.Asset(sourceAsset, sourceAssetIssuer);
     const { records } = await server.strictReceivePaths(
       [asset],
-      // HARDCODED TO USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-      new stellarSdk.Asset("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"),
+      // HARDCODED TO USDC-GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437
+      new stellarSdk.Asset("USDC", "GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437"),
        "10").call();
     setPathPayment(records[0]?.path.map((asset) => {
       if (asset.asset_type === "native") {
@@ -114,8 +114,8 @@ function App() {
           sendAsset: sourceAsset === "XLM" ? stellarSdk.Asset.native() : new stellarSdk.Asset(sourceAsset, sourceAssetIssuer),
           sendMax: "100", // fijarse bien esto
           destination: destinationPublicKey,
-          // HARDCODED TO USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-          destAsset: new stellarSdk.Asset("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"),
+          // HARDCODED TO USDC-GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437
+          destAsset: new stellarSdk.Asset("USDC", "GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437"),
           destAmount: "10",
           path: pathPayment ?? []
       }))
@@ -256,7 +256,7 @@ function App() {
         </div>
         <p className='mt-3 text-sm text-gray-500'>
           Destination receives:
-          <span className='ml-1 font-medium'>USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5</span>
+          <span className='ml-1 font-medium'>USDC-GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437</span>
         </p>
         <label htmlFor="source-asset" className="mt-3 block text-sm font-medium text-gray-700">
           Source Asset to send (if ommitted, native)
@@ -281,7 +281,7 @@ function App() {
             name="source-asset-issuer-public-address"
             id="source-asset-issuer-public-address"
             className="p-2 max-w-4xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-            placeholder="GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            placeholder="GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437"
             value={sourceAssetIssuer}
             onChange={handleSetSourceAssetIssuer}
           />
@@ -357,7 +357,7 @@ function App() {
             name="destination-asset-issuer-public-address"
             id="destination-asset-issuer-public-address"
             className="p-2 max-w-4xl shadow focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-            placeholder="GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            placeholder="GAEB3HSAWRVILER6T5NMX5VAPTK4PPO2BAL37HR2EOUIK567GJFEO437"
           />
         </div>
         <button
